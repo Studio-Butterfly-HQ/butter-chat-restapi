@@ -1,9 +1,9 @@
+// src/modules/auth/auth.repository.ts
 import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Company } from '../company/entities/company.entity';
-import { User } from '../user/entities/user.entity';
-import { CompanyUser, role } from '../company-user/entities/company-user.entity';
+import { User, UserRole } from '../user/entities/user.entity';
 import { LoginAuthDto } from './dto/login.dto';
 import { RegisterCompanyDto } from './dto/registration.dto';
 import * as bcrypt from 'bcrypt';
@@ -16,9 +16,6 @@ export class AuthRepository {
     
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    
-    @InjectRepository(CompanyUser)
-    private companyUserRepository: Repository<CompanyUser>,
     
     private dataSource: DataSource,
   ) {}
@@ -40,7 +37,7 @@ export class AuthRepository {
       throw new ConflictException('Email already registered');
     }
 
-    // Use transaction to ensure data consistency
+    //transaction to ensure data consistency
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -53,29 +50,23 @@ export class AuthRepository {
       });
       const savedCompany = await queryRunner.manager.save(Company, company);
 
-      // 2. Hash password and create User
+      // 2. Hash password and create User (Owner)
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(registerDto.password, saltRounds);
       
       const user = queryRunner.manager.create(User, {
-        user_name: registerDto.company_name+"_Admin",
+        company_id: savedCompany.id,
+        user_name: registerDto.company_name+"_"+"Admin",
         email: registerDto.email,
         password: hashedPassword,
+        role: UserRole.OWNER,
       });
       const savedUser = await queryRunner.manager.save(User, user);
-
-      // 3. Link user to company as OWNER
-      const companyUser = queryRunner.manager.create(CompanyUser, {
-        company_id: savedCompany.id,
-        user_id: savedUser.id,
-        role: role.OWNER,
-      });
-      await queryRunner.manager.save(CompanyUser, companyUser);
 
       // Commit transaction
       await queryRunner.commitTransaction();
 
-      // Return sanitized data (without password)
+      // Return sanitized data
       return {
         company: {
           id: savedCompany.id,
@@ -85,27 +76,25 @@ export class AuthRepository {
         },
         user: {
           id: savedUser.id,
+          user_name: savedUser.user_name,
           email: savedUser.email,
-          user_name:savedUser.user_name
         },
-        role: role.OWNER
+        role: savedUser.role
       };
     } catch (error) {
-      // Rollback transaction on error
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
-      // Release query runner
       await queryRunner.release();
     }
   }
 
   async login(loginDto: LoginAuthDto) {
-    // Find user by email with company relations
+    // Find user by email with company relation
     const user = await this.userRepository.findOne({
       where: { email: loginDto.email },
+      relations: ['company', 'department']
     });
-    // Check if user exists
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -120,77 +109,54 @@ export class AuthRepository {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Return user info with all companies they belong to
+    // Return user info with company
     return {
       user: {
         id: user.id,
         user_name: user.user_name,
         email: user.email,
-      }
+        role: user.role,
+      },
+      company: {
+        id: user.company.id,
+        company_name: user.company.company_name,
+        subdomain: user.company.subdomain,
+      },
+      department: user.department ? {
+        id: user.department.id,
+        department_name: user.department.department_name,
+      } : null
     };
   }
 
-
-  //export them later....
-  // Helper method: Find user by email
+  // Find user by email
   async findUserByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { email },
-      relations: ['companyUsers', 'companyUsers.company']
+      relations: ['company', 'department']
     });
   }
 
-  // Helper method: Find user by ID
+  // Find user by ID
   async findUserById(userId: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id: userId },
-      relations: ['companyUsers', 'companyUsers.company']
+      relations: ['company', 'department']
     });
   }
 
-  // Helper method: Update refresh token
+  // Find company by subdomain
+  async findCompanyBySubdomain(subdomain: string): Promise<Company | null> {
+    return this.companyRepository.findOne({
+      where: { subdomain}
+    });
+  }
+
+  // Update refresh token
   async updateRefreshToken(userId: string, refreshToken: string): Promise<void> {
     await this.userRepository.update(
       { id: userId },
       { refresh_token: refreshToken }
     );
-  }
-
-  // Helper method: Validate user credentials (for JWT strategy)
-  async validateUser(email: string, password: string): Promise<User | null> {
-    const user = await this.userRepository.findOne({
-      where: { email }
-    });
-
-    if (!user) {
-      return null;
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    
-    if (!isPasswordValid) {
-      return null;
-    }
-
-    return user;
-  }
-
-  // Helper method: Get user companies
-  async getUserCompanies(userId: string) {
-    const companyUsers = await this.companyUserRepository.find({
-      where: { user_id: userId, is_active: true },
-      relations: ['company', 'department']
-    });
-
-    return companyUsers.map(cu => ({
-      company_id: cu.company.id,
-      company_name: cu.company.company_name,
-      subdomain: cu.company.subdomain,
-      logo: cu.company.logo,
-      role: cu.role,
-      status: cu.status,
-      department_id: cu.department_id,
-      department_name: cu.department?.department_name || null,
-    }));
   }
 }
