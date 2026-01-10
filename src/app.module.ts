@@ -1,4 +1,4 @@
-import { Inject, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './modules/user/user.module';
@@ -10,6 +10,7 @@ import { Company } from './modules/company/entities/company.entity';
 import { Department } from './modules/department/entities/department.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
+import { UserDepartmentModule } from './modules/user-department/user-department.module';
 
 @Module({
   imports: [
@@ -26,12 +27,12 @@ import { AuthModule } from './modules/auth/auth.module';
          password:configService.get('DB_PASSWORD'),
          database:configService.get('DB_DATABASE'),
          entities:[Company,User,Department],
-         synchronize:true,
+         synchronize:false,
          logging:true
       }),
       inject:[ConfigService]
      }),
-     AuthModule, UserModule, DepartmentModule, CompanyModule
+     AuthModule, UserModule, DepartmentModule, CompanyModule, UserDepartmentModule
   ],
   controllers: [AppController],
   providers: [AppService],
