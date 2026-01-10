@@ -13,27 +13,47 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterCompanyDto) {
-      try{
-        let result = await this.authRepository.register(registerDto);
-        const payload = {sub:result.user.id,email:result.user.email};
-        let accessToken = this.jwtService.sign(payload,{expiresIn:'15m'});
-        let refreshToken = this.jwtService.sign(payload, {expiresIn:'7d'});
-        return {accessToken,refreshToken}
-      }catch(err){
-        throw err
-      }
+    try {
+      let result = await this.authRepository.register(registerDto);
+      
+      const payload = {
+        sub: result.user.id,
+        companyId: result.company.id,
+        role: result.role,
+      };
+      
+      let accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+      let refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+      
+      return {
+        accessToken,
+        refreshToken,
+      };
+    } catch (err) {
+      throw err;
+    }
   }
 
   async login(loginDto: LoginAuthDto) {
-      try{
-        let result = await this.authRepository.login(loginDto);
-        const payload = {sub:result.user.id,email:result.user.email};
-        let accessToken = this.jwtService.sign(payload,{expiresIn:'15m'});
-        let refreshToken = this.jwtService.sign(payload, {expiresIn:'7d'});
-        return {accessToken,refreshToken}
-      }catch(err){
-        throw err
-      }
+    try {
+      let result = await this.authRepository.login(loginDto);
+      
+      const payload = {
+        sub: result.user.id,
+        companyId: result.company.id,
+        role: result.user.role,
+      };
+      
+      let accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+      let refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+      
+      return {
+        accessToken,
+        refreshToken,
+      };
+    } catch (err) {
+      throw err;
+    }
   }
 
   async findUserByEmail(email: string) {
@@ -44,7 +64,7 @@ export class AuthService {
     return this.authRepository.findUserById(userId);
   }
 
-  async getUserCompanies(userId: string) {
-    return this.authRepository.getUserCompanies(userId);
+  async findCompanyBySubdomain(subdomain: string) {
+    return this.authRepository.findCompanyBySubdomain(subdomain);
   }
 }

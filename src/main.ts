@@ -29,7 +29,13 @@ async function bootstrap() {
     .addTag('companies', 'Company management')
     .addTag('users', 'User management')
     .addTag('departments', 'Department management')
-    .addBearerAuth()
+    .addBearerAuth({
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        in: 'header',
+      },)
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
