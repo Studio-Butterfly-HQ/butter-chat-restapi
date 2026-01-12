@@ -44,9 +44,6 @@ export class User extends MetaData {
   @Column({ name: 'refresh_token', nullable: true })
   refresh_token: string;
 
-  @Column('uuid', { nullable: true })
-  department_id: string;
-
   @Column({
     type: 'enum',
     enum: UserRole,

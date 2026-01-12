@@ -11,6 +11,9 @@ import { Department } from './modules/department/entities/department.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserDepartmentModule } from './modules/user-department/user-department.module';
+import { UserDepartment } from './modules/user-department/entities/user-department.entity';
+import { MailModule } from './modules/mail/mail.module';
+import { PasswordResetToken } from './modules/user/entities/password-reset-token.entity';
 
 @Module({
   imports: [
@@ -26,13 +29,13 @@ import { UserDepartmentModule } from './modules/user-department/user-department.
          username:configService.get('DB_USERNAME'),
          password:configService.get('DB_PASSWORD'),
          database:configService.get('DB_DATABASE'),
-         entities:[Company,User,Department],
-         synchronize:false,
+         entities:[Company,User,Department,UserDepartment,PasswordResetToken],
+         synchronize:true,
          logging:true
       }),
       inject:[ConfigService]
      }),
-     AuthModule, UserModule, DepartmentModule, CompanyModule, UserDepartmentModule
+     AuthModule, UserModule, DepartmentModule, CompanyModule, UserDepartmentModule,MailModule
   ],
   controllers: [AppController],
   providers: [AppService],
