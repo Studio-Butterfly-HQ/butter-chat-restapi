@@ -116,11 +116,6 @@ export class AuthRepository {
         user_name: user.user_name,
         email: user.email,
         role: user.role,
-      },
-      company: {
-        id: user.company.id,
-        company_name: user.company.company_name,
-        subdomain: user.company.subdomain,
       }
     };
   }
