@@ -17,4 +17,8 @@ export class CreateDepartmentDto {
     @IsString()
     @IsOptional()
     description?:string
+
+    @IsString()
+    @IsOptional()
+    department_profile_uri?:string
 }

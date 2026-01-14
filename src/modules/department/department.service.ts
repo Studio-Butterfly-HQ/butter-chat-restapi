@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
+import { DepartmentRepository } from './department.repository';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Injectable()
 export class DepartmentService {
-  create(createDepartmentDto: CreateDepartmentDto) {
-    return 'This action adds a new department';
+  constructor(private readonly departmentRepository:DepartmentRepository){}
+  findAll(id:string) {
+    return this.departmentRepository.findAll(id);
   }
 
-  findAll() {
-    return `This action returns all department`;
+  findOne(id: string,companyId:string) {
+    return this.departmentRepository.findOne(id,companyId);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} department`;
+  create(companyId:string, createDepartmentDto: CreateDepartmentDto) {
+    return this.departmentRepository.create(companyId,createDepartmentDto);
   }
 
-  update(id: number, updateDepartmentDto: UpdateDepartmentDto) {
-    return `This action updates a #${id} department`;
+  update(dept_id: string, updateDepartmentDto: UpdateDepartmentDto,company_id:string) {
+    return this.departmentRepository.update(dept_id,updateDepartmentDto,company_id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} department`;
+  remove(dept_id: string,company_id:string) {
+    return this.departmentRepository.remove(dept_id,company_id);
   }
 }

@@ -93,7 +93,7 @@ export class AuthRepository {
     // Find user by email with company relation
     const user = await this.userRepository.findOne({
       where: { email: loginDto.email },
-      relations: ['company', 'department']
+      relations: ['company']
     });
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
@@ -116,24 +116,14 @@ export class AuthRepository {
         user_name: user.user_name,
         email: user.email,
         role: user.role,
-      },
-      company: {
-        id: user.company.id,
-        company_name: user.company.company_name,
-        subdomain: user.company.subdomain,
-      },
-      department: user.department ? {
-        id: user.department.id,
-        department_name: user.department.department_name,
-      } : null
+      }
     };
   }
 
   // Find user by email
   async findUserByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where: { email },
-      relations: ['company', 'department']
+      where: { email }
     });
   }
 
@@ -141,7 +131,7 @@ export class AuthRepository {
   async findUserById(userId: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id: userId },
-      relations: ['company', 'department']
+      select:{id:true,company_id:true,role:true},
     });
   }
 

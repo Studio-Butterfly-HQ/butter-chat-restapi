@@ -13,7 +13,7 @@ import { JwtStrategy } from 'src/common/strategies/jwt.strategy';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Company, User]), // ← Only Company and User
+    TypeOrmModule.forFeature([Company, User]), //Only Company and User
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
