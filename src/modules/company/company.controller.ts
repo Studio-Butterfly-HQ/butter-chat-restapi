@@ -24,46 +24,37 @@ import { ResponseUtil } from 'src/common/utils/response.util';
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
-  @Get('profile/:id')
+  @Get('profile')
   @ApiOperation({ summary: 'Get company profile' })
   @ApiResponse({ status: 200, description: 'Company profile retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Company not found' })
-  async getCompanyProfile(@Param('id') id: string, @Req() req) {
-    if(id !== req.companyId){
-        return "unauthorized"
-    }
-    let profile = await this.companyService.getCompanyById(id);
+  async getCompanyProfile(@Req() req) {
+    let profile = await this.companyService.getCompanyById(req.companyId);
     return ResponseUtil.success(
       'company profile data',
        profile
     )
   }
 
-  @Patch('update/:id')
+  @Patch('update')
   @ApiOperation({ summary: 'Update company profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
   @ApiResponse({ status: 404, description: 'Company not found' })
-  async updateCompanyProfile(@Param('id') id: string,@Req() req, @Body() updateCompanyDto: UpdateCompanyDto) {
-    if(id !== req.companyId){
-        return "unauthorized"
-    }
-    let result = await this.companyService.updateCompany(id, updateCompanyDto);
+  async updateCompanyProfile(@Req() req, @Body() updateCompanyDto: UpdateCompanyDto) {
+    let result = await this.companyService.updateCompany(req.companyId, updateCompanyDto);
     return ResponseUtil.created(
       'updated successfully',
       result
     )
   }
 
-  @Delete('delete/:id')
+  @Delete('delete')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete company profile' })
   @ApiResponse({ status: 204, description: 'Profile deleted successfully' })
   @ApiResponse({ status: 404, description: 'Company not found' })
-  async deleteCompanyProfile(@Param('id') id: string, @Req() req) {
-    if(id !== req.companyId){
-        return "unauthorized"
-    }
-    let result = await this.companyService.deleteCompany(id);
+  async deleteCompanyProfile( @Req() req) {
+    let result = await this.companyService.deleteCompany(req.companyId);
     return ResponseUtil.noContent('profile deleted')
   }
 }
