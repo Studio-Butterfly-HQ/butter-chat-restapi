@@ -18,8 +18,8 @@ export class AuthService {
       
       const payload = {
         sub: result.user.id,
-        companyId: result.company.id,
-        role: result.role,
+        companyId: result.user.company_id,
+        role: result.user.role,
       };
       
       let accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
@@ -40,7 +40,7 @@ export class AuthService {
       
       const payload = {
         sub: result.user.id,
-        companyId: result.company.id,
+        companyId: result.user.company_id,
         role: result.user.role,
       };
       

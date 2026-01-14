@@ -25,6 +25,7 @@ export class AuthRepository {
     const existingCompany = await this.companyRepository.findOne({
       where: { subdomain: registerDto.subdomain }
     });
+
     if (existingCompany) {
       throw new ConflictException('Subdomain already taken');
     }
@@ -68,18 +69,13 @@ export class AuthRepository {
 
       // Return sanitized data
       return {
-        company: {
-          id: savedCompany.id,
-          company_name: savedCompany.company_name,
-          subdomain: savedCompany.subdomain,
-          status: savedCompany.status,
-        },
         user: {
           id: savedUser.id,
+          company_id:savedUser.company_id,
           user_name: savedUser.user_name,
           email: savedUser.email,
+          role: savedUser.role
         },
-        role: savedUser.role
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -113,19 +109,11 @@ export class AuthRepository {
     return {
       user: {
         id: user.id,
+        company_id:user.company_id,
         user_name: user.user_name,
         email: user.email,
         role: user.role,
-      },
-      company: {
-        id: user.company.id,
-        company_name: user.company.company_name,
-        subdomain: user.company.subdomain,
-      },
-      department: user.department ? {
-        id: user.department.id,
-        department_name: user.department.department_name,
-      } : null
+      }
     };
   }
 
